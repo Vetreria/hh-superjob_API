@@ -16,8 +16,6 @@ def predict_rub_salary(salary_item):
             return from_sal * 1.2
         elif to_sal is not None and from_sal is None:
             return to_sal * 0.8
-    else:
-        return None
 
 
 def predict_rub_salary_for_superJob(from_sal, to_sal, currency_sal):
@@ -28,8 +26,6 @@ def predict_rub_salary_for_superJob(from_sal, to_sal, currency_sal):
             return from_sal * 1.2
         elif to_sal != 0 and from_sal == 0:
             return to_sal * 0.8
-    else:
-        return None
 
 
 def get_request(lang, page):
