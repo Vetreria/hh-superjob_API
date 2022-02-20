@@ -96,7 +96,7 @@ def make_table(popular_langs, title):
     print()
 
 
-def superjob_rquest(sj_key, langs):
+def request_superjob(sj_key, langs):
     popular_langs = {}
     headers = {"X-Api-App-Id": sj_key}
     for lang in langs:
@@ -165,7 +165,7 @@ def main():
     ]
     sj_key = os.environ["SJ_KEY"]
     get_vacancies(langs)
-    superjob_rquest(sj_key, langs)
+    request_superjob(sj_key, langs)
 
 
 if __name__ == "__main__":
