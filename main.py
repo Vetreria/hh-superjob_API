@@ -79,9 +79,16 @@ def request_hh(lang):
         headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
         }
-        response = requests.get(
-        f"https://api.hh.ru/vacancies?clusters=true&text=NAME:программист {lang}&area=1&period=30&page={page}&per_page=100",
-        headers=headers,
+        params = {
+                "clusters": "true",
+                "text": f"программист {lang}",
+                "area": 1,
+                "period": 30,
+                "page": page,
+                "per_page": 100
+            }
+        response = requests.get("https://api.hh.ru/vacancies",
+        headers=headers, params=params
         )
         response.raise_for_status()
         result = response.json()
@@ -177,7 +184,7 @@ def main():
     ]
     sj_key = os.environ["SJ_KEY"]
     preparation_hh(langs)
-    preparation_sj(sj_key, langs)
+    # preparation_sj(sj_key, langs)
 
 
 if __name__ == "__main__":
