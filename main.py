@@ -9,30 +9,31 @@ def predict_rub_salary(from_sal, to_sal, currency_sal):
     if currency_sal == "RUR" or currency_sal == "rub":
         if to_sal and from_sal:
             return (from_sal + to_sal) / 2
-        elif not to_sal and from_sal:
+        elif not to_sal:
             return from_sal * 1.2
-        elif to_sal and not from_sal:
+        elif not from_sal:
             return to_sal * 0.8
 
 
-def preparation_hh(langs):
+def prepare_hh(langs):
     popular_langs = {}
     for lang in langs:
         found_count, result_items = request_hh(lang)
-        salary_result = get_sallary_hh(result_items)
-        salary_avg, processed_vac = calc_sallary(salary_result)
+        salary_result = get_salarys_hh(result_items)
+        salary_avg, processed_vac = calc_salary(salary_result)
         popular_langs[lang] = {"vacancies_found": found_count}
         popular_langs[lang].update({"vacancies_processed": processed_vac})
         popular_langs[lang].update({"average_salary": round(salary_avg, 2)})
     title = "Hh Moscow"
     make_table(popular_langs, title)
 
-def preparation_sj(sj_key, langs):
+
+def prepare_sj(sj_key, langs):
     popular_langs = {}
     for lang in langs:
         found_count, result_items = request_superjob(sj_key, lang)
-        salary_result = get_sallary_sj(result_items)
-        salary_avg, processed_vac = calc_sallary(salary_result)
+        salary_result = get_salarys_sj(result_items)
+        salary_avg, processed_vac = calc_salary(salary_result)
         popular_langs[lang] = {"vacancies_found": found_count}
         popular_langs[lang].update({"vacancies_processed": processed_vac})
         popular_langs[lang].update({"average_salary": round(salary_avg, 2)})
@@ -40,29 +41,20 @@ def preparation_sj(sj_key, langs):
     make_table(popular_langs, title)
 
 
-def get_sallary_hh(result_items):
+def get_salarys_hh(result_items):
     salary_result = []
     for item in result_items:
         salary_item = item["salary"]
-        try:
-            from_sal = salary_item["from"]
-        except:
-            from_sal = 0
-        try:
-            to_sal = salary_item["to"]
-        except:
-            to_sal = 0
-        try:
-            currency_sal = salary_item["currency"]
-        except:
-            currency_sal = 0
+        from_sal = salary_item.get("from")
+        to_sal = salary_item.get("to")
+        currency_sal = salary_item.get("currency")
         if salary_item:
             if predict_rub_salary(from_sal, to_sal, currency_sal):
                 salary_result.append(predict_rub_salary(from_sal, to_sal, currency_sal))
     return salary_result
 
 
-def calc_sallary(salary_result):
+def calc_salary(salary_result):
     processed_vac = len(salary_result)
     if len(salary_result):
         salary_avg = mean(salary_result)
@@ -77,18 +69,18 @@ def request_hh(lang):
     pages = 0
     while page <= pages:
         headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
         }
         params = {
-                "clusters": "true",
-                "text": f"программист {lang}",
-                "area": 1,
-                "period": 30,
-                "page": page,
-                "per_page": 100
-            }
-        response = requests.get("https://api.hh.ru/vacancies",
-        headers=headers, params=params
+            "clusters": "true",
+            "text": f"программист {lang}",
+            "area": 1,
+            "period": 30,
+            "page": page,
+            "per_page": 100,
+        }
+        response = requests.get(
+            "https://api.hh.ru/vacancies", headers=headers, params=params
         )
         response.raise_for_status()
         result = response.json()
@@ -128,43 +120,43 @@ def request_superjob(sj_key, lang):
     more_result = True
     result_items = []
     while more_result:
-            params = {
-                "town": "Москва",
-                "keywords[0][srws]": "1",
-                "keywords[0][skwc]": "and",
-                "keywords[0][keys]": lang,
-                "catalogues": [48],
-                "count": 5,
-                "page": page_result,
-            }
-            response = requests.get(
-                "https://api.superjob.ru/2.0/vacancies/", headers=headers, params=params
-            )
-            response.raise_for_status()
-            result = response.json()
-            page_result += 1
-            more_result = result["more"]
-            result_items = result_items + result["objects"]
-            found_count =result["total"]
+        params = {
+            "town": "Москва",
+            "keywords[0][srws]": "1",
+            "keywords[0][skwc]": "and",
+            "keywords[0][keys]": lang,
+            "catalogues": [48],
+            "count": 5,
+            "page": page_result,
+        }
+        response = requests.get(
+            "https://api.superjob.ru/2.0/vacancies/", headers=headers, params=params
+        )
+        response.raise_for_status()
+        result = response.json()
+        page_result += 1
+        more_result = result["more"]
+        result_items = result_items + result["objects"]
+        found_count = result["total"]
     return found_count, result_items
 
 
-def get_sallary_sj(result_items):
+def get_salarys_sj(result_items):
     salary_result = []
     for object in result_items:
-            from_sal = object["payment_from"]
-            to_sal = object["payment_to"]
-            currency_sal = object["currency"]
-            salary_item = predict_rub_salary(from_sal, to_sal, currency_sal)
-            if salary_item:
-                if predict_rub_salary(from_sal, to_sal, currency_sal):
-                    salary_result.append(predict_rub_salary(from_sal, to_sal, currency_sal))
+        from_sal = object["payment_from"]
+        to_sal = object["payment_to"]
+        currency_sal = object["currency"]
+        salary_item = predict_rub_salary(from_sal, to_sal, currency_sal)
+        if salary_item:
+            if predict_rub_salary(from_sal, to_sal, currency_sal):
+                salary_result.append(predict_rub_salary(from_sal, to_sal, currency_sal))
     return salary_result
 
 
 def main():
     dotenv.load_dotenv()
-    
+
     langs = [
         "JavaScript",
         "Java",
@@ -183,8 +175,8 @@ def main():
         "TypeScript",
     ]
     sj_key = os.environ["SJ_KEY"]
-    preparation_hh(langs)
-    # preparation_sj(sj_key, langs)
+    prepare_hh(langs)
+    prepare_sj(sj_key, langs)
 
 
 if __name__ == "__main__":
