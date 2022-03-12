@@ -15,33 +15,31 @@ def predict_rub_salary(from_sal, to_sal):
         return from_sal * 1.2
 
 
-def prepar_hh(langs):
-    popular_langs = {}
-    for lang in langs:
-        found_count, result_items = fetch_hh(lang)
-        salary_result = get_hh_salarys(result_items)
-        salary_avg, processed_vac = calc_salary(salary_result)
-        popular_langs[lang] = {"vacancies_found": found_count}
-        popular_langs[lang].update({"vacancies_processed": processed_vac})
-        popular_langs[lang].update({"average_salary": round(salary_avg, 2)})
-    title = "Hh Moscow"
-    make_table(popular_langs, title)
+def prepare_hh(lang, popular_langs):
+    found_count, result_items = fetch_hh(lang)
+    salary_result = get_hh_salary(result_items)
+    salary_avg, processed_vac = calc_salary(salary_result)
+    popular_langs[lang] = {
+        "vacancies_found": found_count,
+        "vacancies_processed": processed_vac,
+        "average_salary": round(salary_avg, 2)
+        }
+    return popular_langs
 
 
-def prepar_sj(sj_key, langs):
-    popular_langs = {}
-    for lang in langs:
-        found_count, result_items = fetch_superjob(sj_key, lang)
-        salary_result = get_sj_salarys(result_items)
-        salary_avg, processed_vac = calc_salary(salary_result)
-        popular_langs[lang] = {"vacancies_found": found_count}
-        popular_langs[lang].update({"vacancies_processed": processed_vac})
-        popular_langs[lang].update({"average_salary": round(salary_avg, 2)})
-    title = "SuperJob Moscow"
-    make_table(popular_langs, title)
+def prepare_sj(sj_key, lang, popular_langs):
+    found_count, result_items = fetch_superjob(sj_key, lang)
+    salary_result = get_sj_salary(result_items)
+    salary_avg, processed_vac = calc_salary(salary_result)
+    popular_langs[lang] = {
+        "vacancies_found": found_count,
+        "vacancies_processed": processed_vac,
+        "average_salary": round(salary_avg, 2)
+        }
+    return popular_langs
 
 
-def get_hh_salarys(result_items):
+def get_hh_salary(result_items):
     salary_result = []
     for item in result_items:
         salary_item = item["salary"]
@@ -90,7 +88,7 @@ def fetch_hh(lang):
     return found_count, result_items
 
 
-def make_table(popular_langs, title):
+def print_table(popular_langs, title):
     table_data = [
         (
             "Язык программирования",
@@ -139,7 +137,7 @@ def fetch_superjob(sj_key, lang):
     return found_count, result_items
 
 
-def get_sj_salarys(result_items):
+def get_sj_salary(result_items):
     salary_result = []
     for object in result_items:
         from_sal = object["payment_from"]
@@ -173,8 +171,13 @@ def main():
         "TypeScript",
     ]
     sj_key = os.environ["SJ_KEY"]
-    prepar_hh(langs)
-    prepar_sj(sj_key, langs)
+    popular_langs_sj = {}
+    popular_langs_hh = {}
+    for lang in langs:
+        prepare_sj(sj_key, lang, popular_langs = popular_langs_sj)
+        prepare_hh(lang, popular_langs = popular_langs_hh)
+    print_table(popular_langs = popular_langs_sj, title= "SuperJob Moscow")
+    print_table(popular_langs = popular_langs_hh, title= "Hh Moscow")
 
 
 if __name__ == "__main__":
