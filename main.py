@@ -9,10 +9,10 @@ from itertools import count
 def predict_rub_salary(from_sal, to_sal):
     if to_sal and from_sal:
         return (from_sal + to_sal) / 2
-    elif not to_sal:
-        return from_sal * 1.2
-    elif not from_sal:
+    elif to_sal:
         return to_sal * 0.8
+    elif from_sal:
+        return from_sal * 1.2
 
 
 def prepar_hh(langs):
@@ -68,7 +68,7 @@ def fetch_hh(lang):
     page_count = count(start=0, step=1)
     for page in page_count:
         headers = {
-            "User-Agent": "api-test-agent' 'https://api.hh.ru/vacancies"
+            "User-Agent": "api-test-agent' 'https://api.hh.ru/vacancies'"
         }
         params = {
             "clusters": "true",
